@@ -71,17 +71,25 @@ import './index.css';
     ]
    */ 
 
-    constructor(props){
+    /**constructor(props){
         super(props);
         this.state = {
             squares: Array(9).fill(null),
             xIsNext: true,
         };
-    }
+    }*/
+    //we’ll have the Board component receive squares and onClick props from the Game component.
+
+
+
     //Since the Square components no longer maintain state, the Square components receive values from the 
     //Board component and inform the Board component when they’re clicked. 
     //In React terms, the Square components are now controlled components.
-    handleClick(i) {
+
+
+
+
+    /*handleClick(i) {
         //we call .slice() to create a copy of the squares array to modify instead of modifying the existing array.
         const squares = this.state.squares.slice();
         //squares[i] = 'X';
@@ -100,7 +108,11 @@ import './index.css';
             squares: squares,
             xIsNext: !this.state.xIsNext,
         });
-    }
+    } Handle click is moved to game component*/
+
+
+
+
     //There are generally two approaches to changing data. 
     //The first approach is to mutate the data by directly changing the data’s values. 
     //The second approach is to replace the data with a new copy which has the desired changes.
@@ -120,27 +132,27 @@ import './index.css';
       //before** return <Square value = {this.state.squares[i]}/>;
       return(
           <Square
-            value={this.state.squares[i]}
-            onClick={() => this.handleClick(i)}
+            value={this.props.squares[i]}
+            onClick={() => this.props.onClick(i)}
             //Now we’re passing down two props from Board to Square: value and onClick. 
             //The onClick prop is a function that Square can call when clicked.
           />
       );
     }
   
-    render() {
+    /*render() {
         const winner = calculateWinner(this.state.squares);
         let status;
 
-        if(winner) {
+       if(winner) {
             status = 'Winner: ' + winner;
         }
         else{
             status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
-        }
+        } this is now in the game component */
+      render() {  
       return (
         <div>
-          <div className="status">{status}</div>
           <div className="board-row">
             {this.renderSquare(0)}
             {this.renderSquare(1)}
@@ -162,14 +174,67 @@ import './index.css';
   }
   
   class Game extends React.Component {
+    
+    constructor(props) {
+      super(props);
+      this.state = {
+        history: [{
+          squares: Array(9).fill(null),
+        }],
+        xIsNext: true,
+      };
+    }
+
+    handleClick(i) {
+      const history = this.state.history;
+      const current = history[history.length - 1];
+      //we call .slice() to create a copy of the squares array to modify instead of modifying the existing array.
+      const squares = current.squares.slice();
+      //squares[i] = 'X';
+      //this.setState({squares: squares});
+      
+      //We can now change the Board’s handleClick function to return early by ignoring a click if someone has won the game or if a Square is already filled
+      if (calculateWinner(squares) || squares[i]) {
+          return;
+        }
+
+
+      //Each time a player moves, xIsNext (a boolean) will be flipped to determine which 
+      //player goes next and the game’s state will be saved. We’ll update the Board’s handleClick function to flip the value of xIsNext
+      squares[i] = this.state.xIsNext ? 'X' : 'O';
+      this.setState({
+          history: history.concat([{
+            squares: squares,
+          }]),
+          xIsNext: !this.state.xIsNext,
+      });
+  }
+
     render() {
+      const history = this.state.history;
+      const current = history[history.length - 1];
+      const winner = calculateWinner(current.squares);
+
+      let status;
+
+      if(winner) {
+        status = 'Winner: ' + winner;
+      }
+      else{
+        status = 'Next player: ' + (this.state.xIsNext ? 'X' : 'O');
+      }
+
       return (
         <div className="game">
           <div className="game-board">
-            <Board />
+            <Board
+              squares = {current.squares}
+              onClick = {(i) => this.handleClick(i)}
+             />
           </div>
           <div className="game-info">
-            <div>{/* status */}</div>
+            <div>{status}</div>
+            {/**Since the Game component is now rendering the game’s status, we can remove the corresponding code from the Board’s render method. */}
             <ol>{/* TODO */}</ol>
           </div>
         </div>
@@ -196,6 +261,8 @@ import './index.css';
     }
     return null;
   }
+
+
   
   // ========================================
   
